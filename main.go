@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/janeczku/go-spinner"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 )
@@ -31,9 +30,6 @@ func main() {
 		log.Fatalf("Error parsing JSON: %v", err)
 	}
 
-	// start spinner
-	s := spinner.StartNew("featching videos")
-
 	ctx := context.Background()
 	service, err := youtube.NewService(ctx, option.WithAPIKey(config.APIKey))
 	if err != nil {
@@ -50,9 +46,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error making API call: %v", err)
 	}
-
-	// stop spinner
-	s.Stop()
 
 	// Print the video IDs of the last 10 videos
 	for _, item := range response.Items {
