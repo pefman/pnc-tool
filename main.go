@@ -4,8 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
@@ -17,7 +17,7 @@ type Config struct {
 
 func main() {
 
-	data, err := ioutil.ReadFile("config.json")
+	data, err := os.ReadFile("config.json")
 	if err != nil {
 		log.Fatalf("Error reading JSON file: %v", err)
 	}
@@ -50,5 +50,6 @@ func main() {
 		fmt.Printf("Channel: %s\n", item.Snippet.ChannelTitle)
 		fmt.Printf("Description: %s\n", item.Snippet.Description)
 		fmt.Printf("Published At: %s\n", item.Snippet.PublishedAt)
+		fmt.Printf("tags: %s\n", item.Snippet.Tags)
 	}
 }
