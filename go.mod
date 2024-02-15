@@ -2,10 +2,7 @@ module pnc-tool
 
 go 1.22.0
 
-require (
-	github.com/janeczku/go-spinner v0.0.0-20150530144529-cf8ef1d64394
-	google.golang.org/api v0.165.0
-)
+require google.golang.org/api v0.165.0
 
 require (
 	cloud.google.com/go/compute v1.23.3 // indirect
@@ -28,7 +25,6 @@ require (
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/oauth2 v0.17.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240205150955-31a09d347014 // indirect
