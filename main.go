@@ -7,16 +7,18 @@ import (
 	"log"
 	"os"
 
+	"github.com/janeczku/go-spinner"
 	"google.golang.org/api/option"
 	"google.golang.org/api/youtube/v3"
 )
 
 type Config struct {
-	APIKey string `json:"api_key"`
+	APIKey    string `json:"APIKey"`
+	ChannelId string `json:"ChannelId"`
 }
 
 func main() {
-
+	// Read JSON file
 	data, err := os.ReadFile("config.json")
 	if err != nil {
 		log.Fatalf("Error reading JSON file: %v", err)
@@ -29,27 +31,32 @@ func main() {
 		log.Fatalf("Error parsing JSON: %v", err)
 	}
 
-	// Create a new YouTube service with the API key
-	service, err := youtube.NewService(context.Background(), option.WithAPIKey(config.APIKey))
+	// start spinner
+	s := spinner.StartNew("featching videos")
+
+	ctx := context.Background()
+	service, err := youtube.NewService(ctx, option.WithAPIKey(config.APIKey))
 	if err != nil {
-		log.Fatalf("Error creating YouTube client: %v", err)
+		log.Fatalf("Error creating YouTube service: %v", err)
 	}
 
-	// ID of the video you want to fetch details for
-	videoID := "stF2UxnLDOQ"
+	// Call the Search.List method to retrieve the last 10 videos for a specific channel
+	call := service.Search.List([]string{"snippet"}).
+		ChannelId(config.ChannelId).
+		MaxResults(10).
+		Order("date")
 
-	// Make API call to get video details
-	videoResponse, err := service.Videos.List([]string{"snippet"}).Id(videoID).Do()
+	response, err := call.Do()
 	if err != nil {
-		log.Fatalf("Error fetching video details: %v", err)
+		log.Fatalf("Error making API call: %v", err)
 	}
 
-	// Print the video details
-	for _, item := range videoResponse.Items {
-		fmt.Printf("Title: %s\n", item.Snippet.Title)
-		fmt.Printf("Channel: %s\n", item.Snippet.ChannelTitle)
-		fmt.Printf("Description: %s\n", item.Snippet.Description)
-		fmt.Printf("Published At: %s\n", item.Snippet.PublishedAt)
-		fmt.Printf("tags: %s\n", item.Snippet.Tags)
+	// stop spinner
+	s.Stop()
+
+	// Print the video IDs of the last 10 videos
+	for _, item := range response.Items {
+		fmt.Println(item.Id.VideoId)
 	}
+
 }
