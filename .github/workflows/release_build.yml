@@ -1,31 +1,77 @@
-name: Release Go project
+name: Go Build and Release
 
+#on:
+#  push:
+#    tags:
+#      - 'v*'
 on:
   push:
-    tags:
-      - "*" # triggers only if push new tag version, like `0.8.4` or else
+    branches: [ main ]
+
 
 jobs:
   build:
-    name: GoReleaser build
+    name: Build and Test
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0 # See: https://goreleaser.com/ci/actions/
-
-      - name: Set up Go 1.22
+      - uses: actions/checkout@v2
+      - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.22
-        id: go
+          go-version: '^1.15' # Use the version of Go you need
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -v ./...
 
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@master
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
         with:
-          version: latest
-          args: release --rm-dist
+          go-version: '^1.22'
+      - name: Build binaries for multiple platforms
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o pnc-tool-linux-amd64
+          GOOS=windows GOARCH=amd64 go build -o pnc-tool-windows-amd64.exe
+          GOOS=darwin GOARCH=amd64 go build -o pnc-tool-darwin-amd64
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset (Linux)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pnc-tool-linux-amd64
+          asset_name: pnc-tool-linux-amd64
+          asset_content_type: application/octet-stream
+      - name: Upload Release Asset (Windows)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pnc-tool-windows-amd64.exe
+          asset_name: pnc-tool-windows-amd64.exe
+          asset_content_type: application/octet-stream
+      - name: Upload Release Asset (macOS)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GO_RELEASER_GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./pnc-tool-darwin-amd64
+          asset_name: pnc-tool-darwin-amd64
+          asset_content_type: application/octet-stream
