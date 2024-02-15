@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"google.golang.org/api/googleapi/transport"
 	"google.golang.org/api/youtube/v3"
 )
@@ -18,6 +20,9 @@ type Config struct {
 }
 
 func main() {
+
+	s := spinner.New(spinner.CharSets[1], 100*time.Millisecond)
+
 	// Read JSON file
 	data, err := os.ReadFile("config.json")
 	if err != nil {
@@ -50,6 +55,8 @@ func main() {
 
 	//lers get some tags
 	if gettags != "" {
+		s.Start()
+
 		client := &http.Client{
 			Transport: &transport.APIKey{Key: config.APIKey},
 		}
@@ -74,7 +81,7 @@ func main() {
 			if err != nil {
 				log.Fatalf("Error marshalling tags to JSON: %v", err)
 			}
-
+			s.Stop()
 			fmt.Printf(string(tagsJSON))
 		}
 	}
